@@ -1,0 +1,12 @@
+{
+  "name": "component-router",
+  "version"       : "0.1.0",
+  "main": "lib/index.js",
+  "dependencies": {
+    "route-recognizer": "*",
+    "queue-async": "1.x",
+    "eventemitter3": "*",
+    "document-register-element": "*"
+  },
+  "ignore"        : ["*.json", "/src", "/test"]
+}

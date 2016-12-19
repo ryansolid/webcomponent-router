@@ -1,0 +1,20 @@
+{
+  "name": "component-router",
+  "version": "0.1.0",
+  "author": "Ryan Carniato",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "coffee --compile --bare --no-header --output lib/ src/",
+    "test": "mocha test/**/*.tests.coffee"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "coffee-script": "*"
+  },
+  "dependencies": {
+    "queue-async": "1.x",
+    "eventemitter3": "*",
+    "route-recognizer": "*",
+    "document-register-element": "*"
+  }
+}
