@@ -4,8 +4,8 @@
   "author": "Ryan Carniato",
   "main": "lib/index.js",
   "scripts": {
-    "build": "coffee --compile --bare --no-header --output lib/ src/",
-    "test": "mocha test/**/*.tests.coffee"
+    "prepublish": "coffee --compile --bare --no-header --output lib/ src/",
+    "test": "npm run prepublish && mocha test/**/*.tests.coffee"
   },
   "devDependencies": {
     "mocha": "*",
