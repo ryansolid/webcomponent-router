@@ -8,15 +8,12 @@ TODO: Write documentation
 Install
 =======
 
-Install all modules:
-
-  $ npm install
-  $ bower install
+  $ npm install webcomponent-router
 
 Test
 ====
 
-Run the unit tests one time:
+Run the unit tests:
 
   $ npm test
 
