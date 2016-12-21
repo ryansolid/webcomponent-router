@@ -1,5 +1,5 @@
 {
-  "name": "component-router",
+  "name": "webcomponent-router",
   "version": "0.1.0",
   "author": "Ryan Carniato",
   "main": "lib/index.js",
