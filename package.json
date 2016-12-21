@@ -1,5 +1,6 @@
 {
   "name": "webcomponent-router",
+  "description": "A libary for nested client side routing using Webcomponents",
   "version": "0.1.0",
   "author": "Ryan Carniato",
   "main": "lib/index.js",
