@@ -1,7 +1,7 @@
 {
   "name": "webcomponent-router",
   "description": "A library for nested routing using webcomponents",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Ryan Carniato",
   "main": "lib/index.js",
   "scripts": {
@@ -15,7 +15,7 @@
   "dependencies": {
     "queue-async": "1.x",
     "eventemitter3": "*",
-    "route-recognizer": "*",
+    "route-recognizer": "0.2.x",
     "document-register-element": "*"
   }
 }
