@@ -1,7 +1,10 @@
 Introduction
 ============
 
-A libary for nested client side routing to be used with a component architecture. This router is centered around using named tags for HTML Webcomponents. At its core it uses route-recognizer used by Ember's router that heavily influenced this router's DSL. Instead of being bound to a specific framework this router uses simple string attributes to configure it's components and a convention of writing nested versions of itself to each element injected via it's outlets.
+A library for nested client side routing to be used with a component architecture. This router is centered around using named tags to hierarchically construct pages. 
+At its core it uses route-recognizer used by Ember's router that heavily influenced this router's DSL. Instead of being bound to a specific framework this router uses 
+simple string attributes to configure it's components and a convention of writing nested versions of itself to each element injected via it's outlets. In so it should 
+be compatible with any framework yet doesn't use one itself.
 
 TODO: Write documentation
 
