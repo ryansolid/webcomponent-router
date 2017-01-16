@@ -24,38 +24,42 @@ sendEvent = (element, name, value) ->
 module.exports = class RouteLink extends HTMLElement
   @observedAttributes: ['name', 'params', 'query']
   connectedCallback: ->
-    @router = Router.for(@)
-    @template = document.createDocumentFragment()
-    @template.appendChild(@firstChild) while @firstChild
-    @appendChild(document.createElement('a'))
-    @firstChild.appendChild(@template.cloneNode(true))
+    # protect against temporary connecting during templating (knockout)
+    setTimeout =>
+      # attached is from polyfill required for IE/Edge
+      return unless @isConnected or @attached
+      @router = Router.for(@)
+      link = document.createElement('a')
+      link.appendChild(@firstChild) while @firstChild
+      @appendChild(link)
 
-    @onStateChange = =>
-      return unless @props.name
-      @firstChild.href = "#{@router?.toURL(@props.name, @props.params or {}, @props.query or {})}"
-      @firstChild.onclick = (e) =>
-        @router?.transitionTo(@props.name, @props.params or {}, @props.query or {})
-        e.preventDefault()
+      @onStateChange = =>
+        return unless @props.name
+        @firstChild.href = "#{@router?.toURL(@props.name, @props.params or {}, @props.query or {})}"
+        @firstChild.onclick = (e) =>
+          @router?.transitionTo(@props.name, @props.params or {}, @props.query or {})
+          e.preventDefault()
 
-      if @router.isActive(@props.name, @props.params or {}, @props.query or {})
-        @classList.add('active')
-        @firstChild.classList.add('active')
-        sendEvent(@, 'active', true)
-      else
-        @classList.remove('active')
-        @firstChild.classList.remove('active')
-        @removeAttribute('class') unless @classList.length
-        @firstChild.removeAttribute('class') unless @firstChild.classList.length
-        sendEvent(@, 'active', false)
+        if @router.isActive(@props.name, @props.params or {}, @props.query or {})
+          @classList.add('active')
+          @firstChild.classList.add('active')
+          sendEvent(@, 'active', true)
+        else
+          @classList.remove('active')
+          @firstChild.classList.remove('active')
+          @removeAttribute('class') unless @classList.length
+          @firstChild.removeAttribute('class') unless @firstChild.classList.length
+          sendEvent(@, 'active', false)
 
-    @props =
-      name: parse(@getAttribute('name'))
-      params: parse(@getAttribute('params'))
-      query: parse(@getAttribute('query'))
-    @router.on 'state', @onStateChange
-    @onStateChange(@router.state) if !!@router.state
+      @props =
+        name: parse(@getAttribute('name'))
+        params: parse(@getAttribute('params'))
+        query: parse(@getAttribute('query'))
+      @router.on 'state', @onStateChange
+      @onStateChange(@router.state) if !!@router.state
+    , 0
 
-  disconnectedCallback: -> @router.off 'state', @onStateChange
+  disconnectedCallback: -> @router?.off 'state', @onStateChange
 
   attributeChangedCallback: (name, old_val, new_val) ->
     return unless @props
