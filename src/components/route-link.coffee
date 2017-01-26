@@ -30,6 +30,7 @@ module.exports = class RouteLink extends HTMLElement
       return unless @isConnected or @attached
       @router = Router.for(@)
       link = document.createElement('a')
+      link.classList.add('route-link')
       link.appendChild(@firstChild) while @firstChild
       @appendChild(link)
 
