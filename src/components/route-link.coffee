@@ -21,7 +21,7 @@ sendEvent = (element, name, value) ->
 #   params: json representation of params object
 #   query: json representation of query object
 ###
-module.exports = class RouteLink extends HTMLElement
+module.exports = class RouteLink extends HTMLAnchorElement
   @observedAttributes: ['name', 'params', 'query']
   connectedCallback: ->
     # protect against temporary connecting during templating (knockout)
@@ -29,27 +29,20 @@ module.exports = class RouteLink extends HTMLElement
       # attached is from polyfill required for IE/Edge
       return unless @isConnected or @attached
       @router = Router.for(@)
-      link = document.createElement('a')
-      link.classList.add('route-link')
-      link.appendChild(@firstChild) while @firstChild
-      @appendChild(link)
 
       @onStateChange = =>
         return unless @props.name
-        @firstChild.href = "#{@router?.toURL(@props.name, @props.params or {}, @props.query or {})}"
-        @firstChild.onclick = (e) =>
+        @href = "#{@router?.toURL(@props.name, @props.params or {}, @props.query or {})}"
+        @onclick = (e) =>
           @router?.transitionTo(@props.name, @props.params or {}, @props.query or {})
           e.preventDefault()
 
         if @router.isActive(@props.name, @props.params or {}, @props.query or {})
           @classList.add('active')
-          @firstChild.classList.add('active')
           sendEvent(@, 'active', true)
         else
           @classList.remove('active')
-          @firstChild.classList.remove('active')
           @removeAttribute('class') unless @classList.length
-          @firstChild.removeAttribute('class') unless @firstChild.classList.length
           sendEvent(@, 'active', false)
 
       @props =
@@ -67,4 +60,4 @@ module.exports = class RouteLink extends HTMLElement
     @props[name] = parse(new_val)
     @onStateChange()
 
-customElements.define('route-link', RouteLink)
+customElements.define('route-link', RouteLink, {extends: 'a'})
