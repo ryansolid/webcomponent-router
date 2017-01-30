@@ -11,7 +11,7 @@ State = require './state'
 module.exports = class ApplicationRouter extends (require 'eventemitter3')
   @__queue: new Queue(1)
   @for: (element) ->
-    element = element.host or element.parentNode until (router = element.__router) or not (element.parentNode or element.host)
+    element = element.parentNode || element.host until (router = element.__router) or not (element.parentNode or element.host)
     return router
 
   constructor: (element, options={}) ->
