@@ -170,12 +170,12 @@ module.exports = class ApplicationRouter extends (require 'eventemitter3')
       options.params = @_cleanParams(options.params)
       options.query = @_cleanQuery(handlers.queryParams)
 
-    return unless handlers = @recognizer.handlersFor(options.name)
+    return {} unless handlers = @recognizer.handlersFor(options.name)
     if handlers.length and not redirect = handlers[handlers.length-1].handler.redirect
       options.url or= @generate(options.name, options.params, options.query)
       return Object.assign({handlers}, options)
 
-    new_info = redirect(options.params, options.query)
+    return {} unless new_info = redirect(options.params, options.query)
     combined_params = {}
     Object.assign(combined_params, handler.params or Utils.pick(options.params, handler.names)) for handler in handlers
     new_options =
