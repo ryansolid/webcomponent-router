@@ -31,8 +31,10 @@ module.exports = class RouteLink extends HTMLAnchorElement
       @router = Router.for(@)
 
       @onStateChange = =>
-        return unless @props.name
-        @href = "#{@router?.toURL(@props.name, @props.params or {}, @props.query or {})}"
+        return unless @props.name or @props.query
+        if @props.name
+          @href = "#{@router?.toURL(@props.name, @props.params or {}, @props.query or {})}"
+        else @href = "#{@router?.toURL(@props.query or {})}"
         @onclick = (e) =>
           @router?.transitionTo(@props.name, @props.params or {}, @props.query or {})
           e.preventDefault()

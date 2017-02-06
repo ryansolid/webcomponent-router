@@ -1,7 +1,7 @@
 {
   "name": "webcomponent-router",
   "description": "A library for nested routing using webcomponents",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "author": "Ryan Carniato",
   "main": "lib/index.js",
   "scripts": {
