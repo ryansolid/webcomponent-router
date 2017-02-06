@@ -227,7 +227,7 @@ module.exports = class ApplicationRouter extends (require 'eventemitter3')
     clean_query = {}
     for k, v of query when v and not (Array.isArray(v) and not v.length)
       if Array.isArray(v) or Utils.isObject(v)
-         clean_query[k] = Object.assign({}, v)
+         clean_query[k] = v[..]
       else if /^[0-9]*$/.test(v)
          clean_query[k] = +v
       else clean_query[k] = v
