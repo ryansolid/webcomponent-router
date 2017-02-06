@@ -32,14 +32,15 @@ module.exports = class RouteLink extends HTMLAnchorElement
 
       @onStateChange = =>
         return unless @props.name or @props.query
-        if @props.name
-          @href = "#{@router?.toURL(@props.name, @props.params or {}, @props.query or {})}"
-        else @href = "#{@router?.toURL(@props.query or {})}"
+        route_args = [@props.name, @props.params or {}, @props.query or {}]
+        route_args = [@props.query or {}] unless @props.name
+
+        @href = @router?.toURL.apply(@router, route_args)
         @onclick = (e) =>
-          @router?.transitionTo(@props.name, @props.params or {}, @props.query or {})
+          @router?.transitionTo.apply(@router, route_args)
           e.preventDefault()
 
-        if @router.isActive(@props.name, @props.params or {}, @props.query or {})
+        if @router.isActive.apply(@router, route_args)
           @classList.add('active')
           sendEvent(@, 'active', true)
         else
