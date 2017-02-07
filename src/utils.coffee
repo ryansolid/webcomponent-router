@@ -12,8 +12,10 @@ module.exports = class Utils
     new_obj
 
   @isEqual: (a, b) ->
-    return false for k, v of a when b[k] isnt v
-    return false for k, v of b when a[k] isnt v
+    return true if a in [undefined, null] and b in [undefined, null]
+    return a is b if !(Utils.isObject(a) and not Utils.isFunction(a)) or !(Utils.isObject(b) and not Utils.isFunction(b))
+    return false for k, v of a when !Utils.isEqual(b[k],v)
+    return false for k, v of b when not a[k]?
     true
 
   @difference: (a, b) -> a.filter (t) -> not (t in b)
