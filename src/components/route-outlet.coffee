@@ -46,6 +46,6 @@ module.exports = class RouteOutlet extends HTMLElement
     @router.on 'content', @onContentChange
     @onContentChange(@router.content) if !!@router.content
 
-  disconnectedCallback: -> @router.off 'content', @onContentChange
+  disconnectedCallback: -> @router?.off 'content', @onContentChange
 
 customElements.define('route-outlet', RouteOutlet)
