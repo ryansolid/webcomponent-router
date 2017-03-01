@@ -22,7 +22,8 @@ sendEvent = (element, name, value) ->
 #   query: json representation of query object
 ###
 module.exports = class RouteLink extends HTMLAnchorElement
-  @observedAttributes: ['name', 'params', 'query']
+  @observedAttributes: ['name', 'params', 'query', 'clickbubble']
+  clickbubble: true
   connectedCallback: ->
     # protect against temporary connecting during templating (knockout)
     setTimeout =>
@@ -31,14 +32,15 @@ module.exports = class RouteLink extends HTMLAnchorElement
       @router = Router.for(@)
 
       @onStateChange = =>
-        return unless @props.name or @props.query
-        route_args = [@props.name, @props.params or {}, @props.query or {}]
-        route_args = [@props.query or {}] unless @props.name
+        return unless @name or @query
+        route_args = [@name, @params or {}, @query or {}]
+        route_args = [@query or {}] unless @name
 
         @href = @router?.toURL.apply(@router, route_args)
         @onclick = (e) =>
           @router?.transitionTo.apply(@router, route_args)
           e.preventDefault()
+          e.stopPropagation() unless @clickbubble
 
         if @router.isActive.apply(@router, route_args)
           @classList.add('active')
@@ -48,10 +50,9 @@ module.exports = class RouteLink extends HTMLAnchorElement
           @removeAttribute('class') unless @classList.length
           sendEvent(@, 'active', false)
 
-      @props =
-        name: parse(@getAttribute('name'))
-        params: parse(@getAttribute('params'))
-        query: parse(@getAttribute('query'))
+      @name or= parse(@getAttribute('name'))
+      @params or= parse(@getAttribute('params'))
+      @query or= parse(@getAttribute('query'))
       @router.on 'state', @onStateChange
       @onStateChange(@router.state) if !!@router.state
     , 0
@@ -59,8 +60,7 @@ module.exports = class RouteLink extends HTMLAnchorElement
   disconnectedCallback: -> @router?.off 'state', @onStateChange
 
   attributeChangedCallback: (name, old_val, new_val) ->
-    return unless @props
-    @props[name] = parse(new_val)
-    @onStateChange()
+    @[name] = parse(new_val)
+    @onStateChange?()
 
 customElements.define('route-link', RouteLink, {extends: 'a'})
