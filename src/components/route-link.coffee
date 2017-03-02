@@ -15,6 +15,13 @@ sendEvent = (element, name, value) ->
   event.initCustomEvent(name, true, true, value)
   element.dispatchEvent(event)
 
+connectedToDOM = (node) ->
+  return node.isConnected if 'isConnected' of node
+  return true if document.body.contains(node)
+  return false unless Utils.useShadowDOM
+  null while (node = node.parentNode or node.host) and node isnt document.documentElement
+  node is document.documentElement
+
 ### Component used for links
 # Attributes:
 #   name: name of the route
@@ -25,37 +32,46 @@ module.exports = class RouteLink extends HTMLAnchorElement
   @observedAttributes: ['name', 'params', 'query', 'clickbubble']
   clickbubble: true
   connectedCallback: ->
-    # protect against temporary connecting during templating (knockout)
-    setTimeout =>
-      # attached is from polyfill required for IE/Edge
-      return unless @isConnected or @attached
-      @router = Router.for(@)
+    # polyfill sometimes calls twice
+    return unless connectedToDOM(@)
+    @props or= {}
+    for key in RouteLink.observedAttributes then do (key) =>
+      @props[key] = @[key]
+      Object.defineProperty @, key, {
+          get: ->  @props[key]
+          set: (val) ->
+            return if val is @props[key]
+            @props[key] = val
+            @onStateChange()
+          configurable: true
+        }
 
-      @onStateChange = =>
-        return unless @name or @query
-        route_args = [@name, @params or {}, @query or {}]
-        route_args = [@query or {}] unless @name
+    @router = Router.for(@)
 
-        @href = @router?.toURL.apply(@router, route_args)
-        @onclick = (e) =>
-          @router?.transitionTo.apply(@router, route_args)
-          e.preventDefault()
-          e.stopPropagation() unless @clickbubble
+    @onStateChange = =>
+      return unless @name or @query
+      route_args = [@name, @params or {}, @query or {}]
+      route_args = [@query or {}] unless @name
 
-        if @router.isActive.apply(@router, route_args)
-          @classList.add('active')
-          sendEvent(@, 'active', true)
-        else
-          @classList.remove('active')
-          @removeAttribute('class') unless @classList.length
-          sendEvent(@, 'active', false)
+      @href = @router?.toURL.apply(@router, route_args)
+      @onclick = (e) =>
+        @router?.transitionTo.apply(@router, route_args)
+        e.preventDefault()
+        e.stopPropagation() unless @clickbubble
 
-      @name or= parse(@getAttribute('name'))
-      @params or= parse(@getAttribute('params'))
-      @query or= parse(@getAttribute('query'))
-      @router.on 'state', @onStateChange
-      @onStateChange(@router.state) if !!@router.state
-    , 0
+      if @router.isActive.apply(@router, route_args)
+        @classList.add('active')
+        sendEvent(@, 'active', true)
+      else
+        @classList.remove('active')
+        @removeAttribute('class') unless @classList.length
+        sendEvent(@, 'active', false)
+
+    @name or= parse(@getAttribute('name'))
+    @params or= parse(@getAttribute('params'))
+    @query or= parse(@getAttribute('query'))
+    @router.on 'state', @onStateChange
+    @onStateChange(@router.state) if !!@router.state
 
   disconnectedCallback: -> @router?.off 'state', @onStateChange
 
