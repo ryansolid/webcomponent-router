@@ -2,6 +2,10 @@ Router = require '../index'
 Utils = require '../utils'
 
 module.exports = class RouteOutlet extends HTMLElement
+  constructor: ->
+    # Safari 9 fix
+    return HTMLElement.apply(@, arguments)
+
   connectedCallback: ->
     component = null
     prev_params = []

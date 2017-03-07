@@ -30,6 +30,10 @@ connectedToDOM = (node) ->
 module.exports = class RouteLink extends HTMLAnchorElement
   @observedAttributes: ['name', 'params', 'query', 'clickbubble']
   clickbubble: true
+  constructor: ->
+    # Safari 9 fix
+    return HTMLAnchorElement.apply(@, arguments)
+
   connectedCallback: ->
     # polyfill sometimes calls twice
     return unless connectedToDOM(@)
