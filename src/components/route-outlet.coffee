@@ -30,7 +30,7 @@ module.exports = class RouteOutlet extends HTMLElement
         old_router.off 'query', onQueryChange
         old_router.destroy()
         @firstChild.__router = null
-      @removeChild(child) while child = @firstChild
+      @removeChild(@firstChild)
       return unless tag = content.tag
       component = document.createElement(tag)
       component.__router = content

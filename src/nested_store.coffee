@@ -62,6 +62,7 @@ module.exports = class NestedRouterStore extends (require 'eventemitter3')
   destroy: =>
     @removeStateChange()
     @off('transition', handler) for handler in @transition_handlers
+    @removeAllListeners()
     if content = @content
       content.destroy()
       delete @content

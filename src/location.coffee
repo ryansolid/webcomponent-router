@@ -26,10 +26,10 @@ class Hash
 # use window.history and pushstate
 class History
   constructor: (@root) ->
-    @type = 'history'; @path = @root; @depth = history.state?.depth
+    @type = 'history'; @path = @root; @depth = history.state?.depth or 0
   set: (@path) =>
     return if @path is @get()
-    history.pushState({depth: @depth++}, null, @formatURL(@path))
+    history.pushState({depth: ++@depth}, null, @formatURL(@path))
   replace: (@path) =>
     return if @path is @get() and @depth?
     #initialization
