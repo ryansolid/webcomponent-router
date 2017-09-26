@@ -14,7 +14,7 @@ module.exports = class Utils
   @isEqual: (a, b) ->
     return true if a in [undefined, null] and b in [undefined, null]
     return a is b if !(Utils.isObject(a) and not Utils.isFunction(a)) or !(Utils.isObject(b) and not Utils.isFunction(b))
-    return false for k, v of a when !Utils.isEqual(b[k],v)
+    return false for k, v of a when !Utils.isEqual(v, b[k])
     return false for k, v of b when not a[k]?
     true
 

@@ -1,66 +1,51 @@
-Queue = require 'queue-async'
 Recognizer = require 'route-recognizer'
-require './shims'
-
-Utils = require './utils'
 Location = require './location'
 RouterDSL = require './dsl'
-Transition = require './transition'
-State = require './state'
+Utils = require './utils'
+Store = require './store'
+scopeRouter = require './scope'
 
-module.exports = class ApplicationRouter extends (require 'eventemitter3')
-  @__queue: new Queue(1)
-  @for: (element) ->
-    element = element.parentNode || element.host until (router = element.__router) or not (element.parentNode or element.host)
-    return router
+ROUTER_ID = 0
 
-  constructor: (element, options={}) ->
-    super()
-    element.__router = @
-    # console logs events for testing
+module.exports = class Router
+  constructor: (element={}, options={}) ->
     @debug = options.debug if options.debug
+    @id = "ro_#{++ROUTER_ID}"
 
     @recognizer = new Recognizer()
     if options.location is 'history' and !!(history?.pushState)
       @location = Location.create('history', options.root)
     else if options.location is 'none' then @location = Location.create('none')
     else @location = Location.create('hash')
+    @store = new Store(@debug)
 
-    @reset()
+  for: (element) ->
+    element = element.parentNode || element.host until (router_level = element[@id]) or not (element.parentNode or element.host)
+    return @ unless router_level?
+    scopeRouter(@, router_level)
 
-  _set: (obj) =>
-    for k, v of obj when k in ['state', 'name', 'url', 'params', 'query', 'content']
-      @[k] = v
-      @emit k, v
-    return @
-
-  start: =>
+  start: ->
     # resolve initial url and replace current state
     {name, params, query} = @_resolveRoute({url: @location.get()})
     @location.replace(@generate(name, params, query))
 
     # add hooks and trigger initial transition
-    @location.onUpdate @transitionTo, (path) => @emit 'history', path
-    @transitionTo @location.get()
+    @location.onUpdate @transitionTo.bind(@), (path) => @store.emit 'history', path
+    @transitionTo(@location.get())
 
-  reset: (callback=(->)) =>
-    queue = new Queue(1)
+  on: -> @store.on(arguments...)
+  off: -> @store.off(arguments...)
+  once: -> @store.once(arguments...)
 
-    # cleanup existing state
-    @_processEvents(queue, null, state.stores[..].reverse(), 'exit') if state = @state
-
-    queue.await (err) =>
-      @_set(state: new State())
-      callback(err)
-
-  hasRoute: (name) => @recognizer.hasRoute(name)
-  generate: (name, params, query) =>
+  hasRoute: (name) -> @recognizer.hasRoute(name)
+  generate: (name, params, query) ->
     try
       return @recognizer.generate(name, Object.assign({}, params, {queryParams: query}))
     catch err
       return ''
-  isActive: (name, params={}) =>
-    return false unless (state = @active_transition?.state or @state)?.url
+
+  isActive: (name, params={}) ->
+    return false unless (state = @store.state)?.url
 
     # check params
     if Utils.isObject(name)
@@ -74,21 +59,20 @@ module.exports = class ApplicationRouter extends (require 'eventemitter3')
     {name, params} = @_resolveRoute({name, params: @_defaultParams(name, params)})
     name is state.name and Utils.isEqual(params, state.params)
 
-  childRoutes: =>
+  childRoutes: ->
     routes = []
     routes.push(v.handlers[0].handler) for k, v of @recognizer.names when k.indexOf('.') is -1
     return routes
 
-  toURL: (name, params={}, query={}) =>
+  toURL: (name, params={}, query={}) ->
     if Utils.isObject(name)
       query = name
-      state = @active_transition?.state or @state
-      name = state.name
-      query = @_cleanQuery(Object.assign({}, state.query, query))
+      name = @store.state.name
+      query = @_cleanQuery(Object.assign({}, @store.state.query, query))
     {name, params, query} = @_resolveRoute({name, params: @_defaultParams(name, params), query})
     @location.formatURL(@generate(name, params, query))
 
-  map: (callback) =>
+  map: (callback) ->
     dsl = RouterDSL.map(callback)
     @recognizer.map dsl.generateFn(), (recognizer, routes) ->
       proceed = true
@@ -97,70 +81,33 @@ module.exports = class ApplicationRouter extends (require 'eventemitter3')
         proceed = route.path in ['/', ''] or route.handler.name[-6..] is '.index'
       return
 
-  goBack: (depth=1, callback=(->)) =>
-    if arguments.length is 1 and Utils.isFunction(depth)
-      callback = depth
-      depth = 1
-    return callback('Insufficient Depth') unless @location.depth - depth > -1
+  goBack: (depth=1) ->
+    return false unless @location.depth - depth > -1
     # consider making not asyncronous
-    @location.back depth, callback
+    @location.back(depth)
+    true
 
-  transitionTo: (name, params, query, callback) =>
-    args = arguments
-    ApplicationRouter.__queue.defer (queue_callback) =>
-      done = (err) -> callback(err); queue_callback()
-      {state, callback} = @_createState.apply(@, args)
-      return done() unless state
-      @_transition state, {method: 'set'}, done
+  transitionTo: (name, params, query) -> @_transition(name, params, query, 'set')
+  replaceWith: (name, params, query) -> @_transition(name, params, query, 'replace')
+  setState: (state) -> @store.updateState(state)
 
-  replaceWith: (name, params, query, callback) =>
-    args = arguments
-    ApplicationRouter.__queue.defer (queue_callback) =>
-      done = (err) -> callback(err); queue_callback()
-      {state, callback} = @_createState.apply(@, args)
-      return done() unless state
-      @_transition state, {method: 'replace'}, done
-
-  _createState: (name='/', params={}, query={}, callback) =>
-    # map arguments
-    if arguments.length is 2 and Utils.isFunction(params)
-      callback = params
-      params = {}
-
-    if arguments.length is 3 and Utils.isFunction(query)
-      callback = query
-      query = {}
-
-    # nop callback if not provided
-    callback = (->) unless Utils.isFunction(callback)
-
-    old_state = @state
+  _transition: (name='/', params={}, query={}, method) ->
+    old_state = @store.state
     if Utils.isObject(name)
       query = name
       name = old_state.name
       query = @_cleanQuery(Object.assign({}, old_state.query, query))
 
     state_options = if name.charAt(0) is '/' then {url: name} else {name, params: @_defaultParams(name, params), query}
-    new_state = old_state.toNewState(@, state_options)
-    return {state: new_state, callback}
-
-  _transition: (state, options, callback) =>
-    transition = new Transition(@, state)
-    console.log 'Transition resolved to:', transition.state.url if @debug
-    @active_transition = transition
-    transition.execute (err) =>
-      return callback(err) if err
-
-      @_updateComponents transition, (err) =>
-        return callback(err) if err
-        if transition.is_active
-          @location[options.method](transition.state.url)
-          transition.is_active = false
-          delete @active_transition
-        callback()
+    return false unless (state_info = @_resolveRoute(state_options))?.handlers?.length
+    state = Utils.pick(state_info, Store.KEYS)
+    state.levels = state_info.handlers.map (level) -> level.handler
+    console.log 'Resolved to:', state.url if @debug
+    @location[method](state.url) if success = @store.updateState(state)
+    success
 
   # traces through redirects to create final list of handlers
-  _resolveRoute: (options) =>
+  _resolveRoute: (options) ->
     # resolve url
     unless options.name
       return unless handlers = @recognizer.recognize(options.url) or @_notFound(options.url)
@@ -186,13 +133,13 @@ module.exports = class ApplicationRouter extends (require 'eventemitter3')
     @_resolveRoute(new_options)
 
   # finds nearest relative path starting from current level through each parent
-  _resolveNameFallback: (relative_name, parent_name) =>
+  _resolveNameFallback: (relative_name, parent_name) ->
     name = if parent_name then "#{parent_name}.#{relative_name}" else relative_name
     name = name_array[...-1].concat([relative_name]).join('.') until @recognizer.hasRoute(name) or not (name_array = name.split('.')[...-1]).length
     return name
 
   # resolve not found url routes
-  _notFound: (url) =>
+  _notFound: (url) ->
     url = url_array.join('/') until (handlers = @recognizer.recognize(url)) or not (url_array = url.split('/')[...-1]).length
     return unless handlers
     name = handlers[handlers.length-1].handler.name
@@ -212,11 +159,11 @@ module.exports = class ApplicationRouter extends (require 'eventemitter3')
     return new_handlers
 
   # applies current state parameter data as defaults to new proposed transition
-  _defaultParams: (name, params) =>
+  _defaultParams: (name, params) ->
     state = @state
     param_names = []
     param_names = param_names.concat(result.names) for result in @recognizer.handlersFor(name)
-    params = Object.assign(Utils.pick(state.params, param_names), params)
+    params = Object.assign(Utils.pick(@store.state.params, param_names), params)
     @_cleanParams(params)
     return params
 
@@ -232,57 +179,6 @@ module.exports = class ApplicationRouter extends (require 'eventemitter3')
          clean_query[k] = +v
       else clean_query[k] = v
     return clean_query
-
-  _updateComponents: (transition, callback) =>
-    stores = transition.state.partitionStores(@state)
-    transition.current_stores = stores.unchanged[..]
-    return callback() unless stores.exited.length or stores.updated.length or stores.entered.length
-
-    @_willTransition transition, stores.exited.concat(stores.reset), (err) =>
-      return callback(err) if err
-      return callback(new Error('transition aborted')) if transition.is_aborted
-      @_processEvents(transition, stores.exited, 'exit')
-      @_processEvents(transition, stores.updated, 'update')
-      @_processEvents(transition, stores.entered, 'enter')
-      @_set(state: transition.state, params: transition.state.params, query: transition.state.query, url: transition.state.url, name: transition.state.name)
-      callback()
-
-  _willTransition: (transition, list, callback) =>
-    queue = new Queue(1)
-    for store in list
-      do (store) => queue.defer (callback) =>
-        return callback(new Error('transition aborted')) if transition.is_aborted
-        console.log 'Will Transition:', store.tag if @debug
-        store._willTransition transition, callback
-    queue.await callback
-
-  _processEvents: (transition, list, type) =>
-    for store in list
-      switch type
-        when 'enter'
-          if store.tag
-            top = (current = transition.current_stores)?[current?.length-1]
-            current.push(store)
-            console.log 'Set Content:', top?.tag or 'Application', '->', store.tag if @debug
-            (top or @)._set({content: store})
-
-        when 'update'
-          level = store.level
-          if store.params_changed
-            console.log 'Update Params:', store.tag, store.params if @debug
-            @state.stores[level]._set({params: store.params})
-          if store.query_changed
-            console.log 'Update Query:', store.tag, store.query if @debug
-            @state.stores[level]._set({query: store.query})
-          delete store.params_changed
-          delete store.query_changed
-          transition.current_stores.push(transition.state.stores[level] = @state.stores[level])
-
-        # just trigger event
-        else
-          console.log 'Exit:', store.tag if @debug
-          store.emit type, transition
-    return
 
 # only include in browser
 if typeof window isnt 'undefined'

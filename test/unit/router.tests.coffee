@@ -67,100 +67,95 @@ describe 'Router Tests', ->
 
   describe 'Handle transitions by name', ->
     it 'should navigate to specific album in group', (done) ->
-      router.transitionTo 'group.album', {group_id: 12, album_id: 10}, (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/groups/12/albums/10')
-        done()
+      success = router.transitionTo('group.album', {group_id: 12, album_id: 10})
+      assert.ok(success)
+      assert.equal(router.location.path, '/groups/12/albums/10')
+      done()
 
     it 'should navigate to index pane for same group', (done) ->
-      router.transitionTo 'group', (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/groups/12/albums')
-        done()
+      success = router.transitionTo('group')
+      assert.ok(success)
+      assert.equal(router.location.path, '/groups/12/albums')
+      done()
 
     it 'should remain unchanged when explicitly navigating to same pane (albums)', (done) ->
-      router.transitionTo 'group.albums', {group_id: 12}, (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/groups/12/albums')
-        done()
+      success = router.transitionTo('group.albums', {group_id: 12})
+      assert.ok(success)
+      assert.equal(router.location.path, '/groups/12/albums')
+      done()
 
     it 'should exit index group and group , and enter user, and specific set', (done) ->
-      router.transitionTo 'user.set', {user_id: 1234, set_id: 2}, (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/users/1234/sets/2')
-        done()
+      success = router.transitionTo 'user.set', {user_id: 1234, set_id: 2}
+      assert.ok(success)
+      assert.equal(router.location.path, '/users/1234/sets/2')
+      done()
 
     it 'should update set', (done) ->
-      router.transitionTo 'user.set', {user_id: 1234, set_id: 5}, (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/users/1234/sets/5')
-        done()
+      success = router.transitionTo 'user.set', {user_id: 1234, set_id: 5}
+      assert.ok(success)
+      assert.equal(router.location.path, '/users/1234/sets/5')
+      done()
 
     it 'should navigate to different top level page', (done) ->
-      router.transitionTo 'uploader', (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/uploader')
-        done()
+      success = router.transitionTo 'uploader', (err) ->
+      assert.ok(success)
+      assert.equal(router.location.path, '/uploader')
+      done()
 
     it 'should navigate to different sub page', (done) ->
-      router.transitionTo 'uploader.group', {group_id: 4}, (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/uploader/groups/4/albums')
-        done()
+      success = router.transitionTo 'uploader.group', {group_id: 4}, (err) ->
+      assert.ok(success)
+      assert.equal(router.location.path, '/uploader/groups/4/albums')
+      done()
 
     it 'should detect query change', (done) ->
-      router.transitionTo 'uploader.group.albums', {group_id: 4}, {test: 1}, (err) ->
-        assert.ok(!err)
-        console.log router.location.path
-        assert.ok(router.location.path is '/uploader/groups/4/albums?test=1')
-        done()
+      success = router.transitionTo 'uploader.group.albums', {group_id: 4}, {test: 1}, (err) ->
+      assert.ok(success)
+      assert.equal(router.location.path, '/uploader/groups/4/albums?test=1')
+      done()
 
     it 'should only update query', (done) ->
-      router.transitionTo {test: 2}, (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/uploader/groups/4/albums?test=2')
-        done()
+      success = router.transitionTo {test: 2}, (err) ->
+      assert.ok(success)
+      assert.equal(router.location.path, '/uploader/groups/4/albums?test=2')
+      done()
 
     it 'should detect query change on remove', (done) ->
-      router.transitionTo 'uploader.group.albums', (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/uploader/groups/4/albums')
-        done()
+      success = router.transitionTo 'uploader.group.albums', (err) ->
+      assert.ok(success)
+      assert.equal(router.location.path, '/uploader/groups/4/albums')
+      done()
 
   describe 'Going Back', ->
     it 'should go back', (done) ->
-      router.goBack (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/uploader/groups/4/albums?test=2')
-        done()
+      success = router.goBack()
+      assert.ok(success)
+      assert.ok(router.location.path is '/uploader/groups/4/albums?test=2')
+      done()
 
     it 'should go back again', (done) ->
-      router.goBack (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/uploader/groups/4/albums?test=1')
-        done()
+      success = router.goBack()
+      assert.ok(success)
+      assert.ok(router.location.path is '/uploader/groups/4/albums?test=1')
+      done()
 
   describe 'Handle url change', ->
     it 'should navigate on detected url change to root', (done) ->
-      router.location.trigger '/', (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/users/123/sets')
-        done()
+      router.location.trigger '/'
+      assert.ok(router.location.path is '/users/123/sets')
+      done()
 
     it 'should navigate on detected url change', (done) ->
-      router.location.trigger '/groups/12e1/sets/1', (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/groups/12e1/sets/1')
-        done()
+      router.location.trigger '/groups/12e1/sets/1'
+      assert.ok(router.location.path is '/groups/12e1/sets/1')
+      done()
 
     it 'should fallback to group notFound handler', (done) ->
-      router.location.trigger '/groups/12e1/set/1', (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/groups/12e1/albums')
-        done()
+      router.location.trigger '/groups/12e1/set/1'
+      assert.ok(router.location.path is '/groups/12e1/albums')
+      done()
 
     it 'should fallback to application notFound handler', (done) ->
-      router.location.trigger '/group/12e1/sets/1', (err) ->
-        assert.ok(!err)
-        assert.ok(router.location.path is '/users/123/sets')
-        done()
+      router.location.trigger '/group/12e1/sets/1'
+      assert.ok(router.location.path is '/users/123/sets')
+      done()

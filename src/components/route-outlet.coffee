@@ -7,49 +7,50 @@ module.exports = class RouteOutlet extends HTMLElement
     return HTMLElement.apply(@, arguments)
 
   connectedCallback: ->
-    component = null
+    element = null
     prev_params = []
 
-    onParamsChange = (params) =>
+    @onParamsChange = (params) =>
       for k, v of params
         v = JSON.stringify(v) unless Utils.isString(v)
-        component.setAttribute(k.replace(/_/g, '-'), v)
+        element.setAttribute(k.replace(/_/g, '-'), v)
       keys = Utils.difference(Object.keys(prev_params), Object.keys(params))
       for k in keys
-        component.setAttribute(k.replace(/_/g, '-'), null)
-        component.removeAttribute(k.replace(/_/g, '-'))
+        element.setAttribute(k.replace(/_/g, '-'), null)
+        element.removeAttribute(k.replace(/_/g, '-'))
       prev_params = params
 
-    onQueryChange = (query) ->
-      component.setAttribute('query', JSON.stringify(query)) if query
-      component.removeAttribute('query') unless Object.keys(query).length
+    @onQueryChange = (query) ->
+      element.setAttribute('query', JSON.stringify(query)) if query
+      element.removeAttribute('query') unless Object.keys(query).length
 
-    @onContentChange = (content) =>
-      if old_router = @firstChild?.__router
-        old_router.off 'params', onParamsChange
-        old_router.off 'query', onQueryChange
-        old_router.destroy()
-        @firstChild.__router = null
-      @removeChild(@firstChild) if @firstChild
-      return unless tag = content.tag
-      component = document.createElement(tag)
-      component.__router = content
+    @onEnter = (changes) ->
+      return unless tag = changes[target_level]?.tag
+      element = document.createElement(tag)
+      element[@router.id] = target_level
       attributes = {}
       attributes[attr.name] = attr.value for attr in @attributes
       if Object.keys(Object.assign(attributes, content.attributes)).length
         for k, v of attributes
           v = JSON.stringify(v) unless Utils.isString(v)
-          component.setAttribute(k, v)
-      content.on 'params', onParamsChange
-      content.on 'query', onQueryChange
-      onParamsChange(content.params)
-      onQueryChange(content.query)
-      @appendChild(component)
+          element.setAttribute(k, v)
+      @appendChild(element)
+
+    @onExit = (changes) ->
+      return unless target_level of changes
+      @removeChild(@firstChild) if @firstChild
 
     @router = Router.for(@)
-    @router.on 'content', @onContentChange
-    @onContentChange(@router.content) if !!@router.content
+    target_level = if (level = @router.level)? then level else 0
+    @router.on 'exit', @onExit
+    @router.on 'enter', @onEnter
+    @router.on 'params', @onParamsChange
+    @router.on 'query', @onQueryChange
 
-  disconnectedCallback: -> @router?.off 'content', @onContentChange
+  disconnectedCallback: ->
+    @router.off 'exit', @onExit
+    @router.off 'enter', @onEnter
+    @router.off 'params', @onParamsChange
+    @router.off 'query', @onQueryChange
 
 customElements.define('route-outlet', RouteOutlet)

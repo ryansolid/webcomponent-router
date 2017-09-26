@@ -47,7 +47,7 @@ class History
       @depth = event.state.depth
       callback(new_path)
     , false)
-  back: (depth, callback) => history.go(-depth); callback()
+  back: (depth) => history.go(-depth)
   formatURL: (url) => @root + url.replace(TRIM_SLASHES, '')
 
 # no browser based location, use for testing
@@ -57,16 +57,16 @@ class None
   replace: (@path) -> @fake_history[@depth - 1] = @path
   get: -> @path
   onUpdate: (callback) -> @updateCallback = callback
-  back: (depth, callback) ->
+  back: (depth) ->
     @depth -= 1 + depth
-    @trigger(@fake_history[@depth], callback)
+    @trigger(@fake_history[@depth])
 
   formatURL: (url) => url
 
   # for testing
-  trigger: (path, callback) =>
+  trigger: (path) =>
     return unless path != @path
-    @updateCallback(path, callback)
+    @updateCallback(path)
 
 # Location Factory
 module.exports =
