@@ -26,14 +26,14 @@ scopeName = (router, name, level) ->
 
   relative_name = 'index' unless relative_name = name[start_index...]
   if name.charAt(0) is '.'
-    (name_array = router.state.levels[level].name.split('.')[...(if start_index > 1 then 1-start_index else start_index)]).push(relative_name)
+    (name_array = router.store.state.levels[level].name.split('.')[...(if start_index > 1 then 1-start_index else start_index)]).push(relative_name)
     return name_array.join('.')
-  name = router._resolveNameFallback(relative_name, router.state.levels[level].name.split('.')[...-1].join('.')) if name.charAt(0) is '^'
-  name = router._resolveNameFallback(relative_name, router.state.levels[level].name) if name.charAt(0) is '*'
+  name = router._resolveNameFallback(relative_name, router.store.state.levels[level].name.split('.')[...-1].join('.')) if name.charAt(0) is '^'
+  name = router._resolveNameFallback(relative_name, router.store.state.levels[level].name) if name.charAt(0) is '*'
   return name
 
 module.exports = (router, level) ->
-  scoped_router = {id: router.id, level, state: router.state.levels[level]}
+  scoped_router = {id: router.id, level, store: router.store}
   for method in SCOPED_METHODS
     do (method) => scoped_router[method] = (name) =>
       return router[method].apply(router, arguments) if Utils.isObject(name)

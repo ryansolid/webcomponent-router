@@ -20,23 +20,23 @@ module.exports = class RouteOutlet extends HTMLElement
         element.removeAttribute(k.replace(/_/g, '-'))
       prev_params = params
 
-    @onQueryChange = (query) ->
+    @onQueryChange = (query) =>
       element.setAttribute('query', JSON.stringify(query)) if query
       element.removeAttribute('query') unless Object.keys(query).length
 
-    @onEnter = (changes) ->
+    @onEnter = (changes) =>
       return unless tag = changes[target_level]?.tag
       element = document.createElement(tag)
-      element[@router.id] = target_level
+      element.__router = {id: @router.id, level: target_level}
       attributes = {}
       attributes[attr.name] = attr.value for attr in @attributes
-      if Object.keys(Object.assign(attributes, content.attributes)).length
+      if Object.keys(Object.assign(attributes, changes[target_level].attributes)).length
         for k, v of attributes
           v = JSON.stringify(v) unless Utils.isString(v)
           element.setAttribute(k, v)
       @appendChild(element)
 
-    @onExit = (changes) ->
+    @onExit = (changes) =>
       return unless target_level of changes
       @removeChild(@firstChild) if @firstChild
 
@@ -46,6 +46,7 @@ module.exports = class RouteOutlet extends HTMLElement
     @router.on 'enter', @onEnter
     @router.on 'params', @onParamsChange
     @router.on 'query', @onQueryChange
+    @onEnter({"#{target_level}": @router.store.state.levels[target_level]})
 
   disconnectedCallback: ->
     @router.off 'exit', @onExit

@@ -74,7 +74,7 @@ module.exports = class RouteLink extends HTMLAnchorElement
     @params or= parse(@getAttribute('params'))
     @query or= parse(@getAttribute('query'))
     @router.on 'state', @onStateChange
-    @onStateChange(@router.state) if !!@router.state
+    @onStateChange() if !!@router.store.state
 
   disconnectedCallback: -> @router?.off 'state', @onStateChange
 

@@ -8,9 +8,18 @@ scopeRouter = require './scope'
 ROUTER_ID = 0
 
 module.exports = class Router
+  @instances: []
+  @for: (element) ->
+    element = element.parentNode || element.host until (router_info = element.__router) or not (element.parentNode or element.host)
+    return unless router_info and router = Router.instances[router_info.id]
+    return router unless router_info.level?
+    scopeRouter(router, router_info.level)
+
   constructor: (element={}, options={}) ->
     @debug = options.debug if options.debug
     @id = "ro_#{++ROUTER_ID}"
+    element.__router = {id: @id}
+    Router.instances[@id] = @
 
     @recognizer = new Recognizer()
     if options.location is 'history' and !!(history?.pushState)
@@ -18,11 +27,6 @@ module.exports = class Router
     else if options.location is 'none' then @location = Location.create('none')
     else @location = Location.create('hash')
     @store = new Store(@debug)
-
-  for: (element) ->
-    element = element.parentNode || element.host until (router_level = element[@id]) or not (element.parentNode or element.host)
-    return @ unless router_level?
-    scopeRouter(@, router_level)
 
   start: ->
     # resolve initial url and replace current state
