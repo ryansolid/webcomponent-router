@@ -37,12 +37,14 @@ module.exports = class Store extends EventEmitter
         console.log 'Exit:', exit_payload if @debug
         @emit('exit', exit_payload)
 
+    @state = state
+    @emit 'state', state
+
+    if change_index > -1
       enter_payload = Object.assign({}, ({"#{i}": state.levels[i]} for i in [change_index...state.levels.length])...)
       console.log 'Enter:', enter_payload if @debug
       @emit('enter', enter_payload)
 
-    @state = state
-    @emit 'state', state
     for k in changed_keys
       console.log "Update #{k}:", @state[k] if @debug and k in ['params', 'query']
       @emit(k, @state[k])

@@ -26,6 +26,7 @@ module.exports = class RouteOutlet extends HTMLElement
 
     @onEnter = (changes) =>
       return unless tag = changes[target_level]?.tag
+      return if element?.nodeName.toLowerCase() is tag
       element = document.createElement(tag)
       element.__router = {id: @router.id, level: target_level}
       attributes = {}
@@ -34,14 +35,17 @@ module.exports = class RouteOutlet extends HTMLElement
         for k, v of attributes
           v = JSON.stringify(v) unless Utils.isString(v)
           element.setAttribute(k, v)
+      @onParamsChange(@router.store.state.params)
+      @onQueryChange(@router.store.state.query)
       @appendChild(element)
 
     @onExit = (changes) =>
       return unless target_level of changes
       @removeChild(@firstChild) if @firstChild
+      element = null
 
     @router = Router.for(@)
-    target_level = if (level = @router.level)? then level else 0
+    target_level = if (level = @router.level)? then level + 1 else 0
     @router.on 'exit', @onExit
     @router.on 'enter', @onEnter
     @router.on 'params', @onParamsChange

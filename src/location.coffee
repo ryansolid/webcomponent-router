@@ -44,7 +44,7 @@ class History
       new_path = @get()
       history_callback(new_path)
       return if new_path is @path
-      @depth = event.state.depth
+      @depth = event.state?.depth or 0
       callback(new_path)
     , false)
   back: (depth) => history.go(-depth)
