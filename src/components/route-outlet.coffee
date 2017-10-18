@@ -44,6 +44,11 @@ module.exports = class RouteOutlet extends HTMLElement
       @removeChild(@firstChild) if @firstChild
       element = null
 
+    @refresh = =>
+      change = {"#{target_level}": @router.store.state.levels[target_level]}
+      @onExit(change)
+      @onEnter(change)
+
     @router = Router.for(@)
     target_level = if (level = @router.level)? then level + 1 else 0
     @router.on 'exit', @onExit
