@@ -19,32 +19,32 @@ scopeName = (router, name, level) ->
   return name unless name.charAt(0) in ['.', '*', '^']
 
   # calculate depth of dot wildcard
-  start_index = 1
+  startIndex = 1
   for char in name[1...]
     break unless char is '.'
-    start_index += 1
+    startIndex += 1
 
-  relative_name = 'index' unless relative_name = name[start_index...]
+  relativeName = 'index' unless relativeName = name[startIndex...]
   if name.charAt(0) is '.'
-    (name_array = router.store.state.levels[level].name.split('.')[...(if start_index > 1 then 1-start_index else start_index)]).push(relative_name)
+    (name_array = router.store.state.levels[level].name.split('.')[...(if startIndex > 1 then 1-startIndex else startIndex)]).push(relativeName)
     return name_array.join('.')
-  name = router._resolveNameFallback(relative_name, router.store.state.levels[level].name.split('.')[...-1].join('.')) if name.charAt(0) is '^'
-  name = router._resolveNameFallback(relative_name, router.store.state.levels[level].name) if name.charAt(0) is '*'
+  name = router._resolveNameFallback(relativeName, router.store.state.levels[level].name.split('.')[...-1].join('.')) if name.charAt(0) is '^'
+  name = router._resolveNameFallback(relativeName, router.store.state.levels[level].name) if name.charAt(0) is '*'
   return name
 
 module.exports = (router, level) ->
-  scoped_router = {id: router.id, level, store: router.store}
+  scopedRouter = {id: router.id, level, store: router.store}
   for method in SCOPED_METHODS
-    do (method) => scoped_router[method] = (name) =>
+    do (method) => scopedRouter[method] = (name) =>
       return router[method].apply(router, arguments) if Utils.isObject(name)
       # relative naming
       arguments[0] = scopeName(router, name, level)
       router[method].apply(router, arguments)
 
-  scoped_router.childRoutes = ->
+  scopedRouter.childRoutes = ->
     routes = []
-    for k, v of router.recognizer.names when k.indexOf(scoped_router.name+'.') isnt -1
-      name = k.replace(scoped_router.name + '.', '')
+    for k, v of router.recognizer.names when k.indexOf(scopedRouter.name+'.') isnt -1
+      name = k.replace(scopedRouter.name + '.', '')
       if name.indexOf('.') is -1
         handler = Object.assign({}, v.handlers[level+1].handler)
         handler.name = name
@@ -52,7 +52,7 @@ module.exports = (router, level) ->
     return routes
 
   for method in FORWARDED_METHODS
-    do (method) -> scoped_router[method] = -> router[method](arguments...)
+    do (method) -> scopedRouter[method] = -> router[method](arguments...)
 
-  scoped_router
+  scopedRouter
 

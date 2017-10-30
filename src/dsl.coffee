@@ -10,7 +10,7 @@ Utils = require './utils'
 module.exports = class RouterDSL
   constructor: (@parent) ->
     @matches = []
-    @explicit_index = false
+    @explicitIndex = false
 
   fullName: (name) =>
     return name unless @parent
@@ -37,24 +37,24 @@ module.exports = class RouterDSL
   # adds handler for not found route
   notFound: (options) ->
     # redirect with dynamic args, no callback possible
-    if Utils.isFunction(options) then @addRoute('not_found', {path: '/not_found', redirect: options})
+    if Utils.isFunction(options) then @addRoute('not_found', {path: '/not-found', redirect: options})
 
     # index route
-    else if Utils.isObject(options) then @route('not_found', Object.assign({}, options, {path: '/not_found'}))
+    else if Utils.isObject(options) then @route('not_found', Object.assign({}, options, {path: '/not-found'}))
 
 
   addRoute: (name, options, callback) =>
     handler_options = Object.assign({}, options)
     delete handler_options.path
     handler = Object.assign({name: @fullName(name)}, handler_options)
-    @explicit_index = true if options.path in ['/', ''] or name[-5..] is 'index'
-    @matches.push([options.path or "/#{name}", handler, callback])
+    @explicitIndex = true if options.path in ['/', ''] or name[-5..] is 'index'
+    @matches.push([options.path or "/#{name.replace(/_/g, '-')}", handler, callback])
 
   generateFn: =>
     # add empty index
-    @index({}) unless @explicit_index
+    @index({}) unless @explicitIndex
     return (match) =>
-      match(dsl_match[0]).to(dsl_match[1], dsl_match[2]) for dsl_match in @matches
+      match(dslMatch[0]).to(dslMatch[1], dslMatch[2]) for dslMatch in @matches
       return
 
   @map: (callback) ->

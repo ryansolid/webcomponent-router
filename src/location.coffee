@@ -17,8 +17,8 @@ class Hash
     return '/' + fragment.replace(TRIM_SLASHES, '')
   onUpdate: (callback) =>
     window.addEventListener('hashchange', (event) =>
-      return if (new_path = @get()) is @path
-      callback(new_path)
+      return if (newPath = @get()) is @path
+      callback(newPath)
     , false)
   back: -> #TODO
   formatURL: (url) -> '#' + url
@@ -39,27 +39,27 @@ class History
     fragment = decodeURI(location.pathname + location.search).replace(TRIM_SLASHES, '')
     fragment = fragment.replace(@root.replace(TRIM_SLASHES, ''), '')
     return '/' + fragment.replace(TRIM_SLASHES, '')
-  onUpdate: (callback, history_callback) =>
+  onUpdate: (callback, historyCallback) =>
     window.addEventListener('popstate', (event) =>
-      new_path = @get()
-      history_callback(new_path)
-      return if new_path is @path
+      newPath = @get()
+      historyCallback(newPath)
+      return if newPath is @path
       @depth = event.state?.depth or 0
-      callback(new_path)
+      callback(newPath)
     , false)
   back: (depth) => history.go(-depth)
   formatURL: (url) => @root + url.replace(TRIM_SLASHES, '')
 
 # no browser based location, use for testing
 class None
-  constructor: -> @type = 'none'; @path='/'; @updateCallback = null; @fake_history = []; @depth = 0
-  set: (@path) -> @fake_history.push(@path); @depth++
-  replace: (@path) -> @fake_history[@depth - 1] = @path
+  constructor: -> @type = 'none'; @path='/'; @updateCallback = null; @fakeHistory = []; @depth = 0
+  set: (@path) -> @fakeHistory.push(@path); @depth++
+  replace: (@path) -> @fakeHistory[@depth - 1] = @path
   get: -> @path
   onUpdate: (callback) -> @updateCallback = callback
   back: (depth) ->
     @depth -= 1 + depth
-    @trigger(@fake_history[@depth])
+    @trigger(@fakeHistory[@depth])
 
   formatURL: (url) => url
 

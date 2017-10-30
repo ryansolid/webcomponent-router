@@ -10,10 +10,10 @@ ROUTER_ID = 0
 module.exports = class Router
   @instances: []
   @for: (element) ->
-    element = element.parentNode || element.host until (router_info = element.__router) or not (element.parentNode or element.host)
-    return unless router_info and router = Router.instances[router_info.id]
-    return router unless router_info.level?
-    scopeRouter(router, router_info.level)
+    element = element.parentNode || element.host until (routerInfo = element.__router) or not (element.parentNode or element.host)
+    return unless routerInfo and router = Router.instances[routerInfo.id]
+    return router unless routerInfo.level?
+    scopeRouter(router, routerInfo.level)
 
   constructor: (element={}, options={}) ->
     @debug = options.debug if options.debug
@@ -126,20 +126,20 @@ module.exports = class Router
       options.url or= @generate(options.name, options.params, options.query)
       return Object.assign({handlers}, options)
 
-    return {} unless new_info = redirect(options.params, options.query)
-    combined_params = {}
-    Object.assign(combined_params, handler.params or Utils.pick(options.params, handler.names)) for handler in handlers
-    new_options =
-      name: if (parent_name = handlers[handlers.length-2]?.handler.name) then "#{parent_name}.#{new_info[0]}" else new_info[0]
-      params: @_cleanParams(Object.assign(new_info[1] or {}, combined_params))
-      query: @_cleanQuery(Object.assign(new_info[2] or {}, options.query or {}, handlers.queryParams))
+    return {} unless newInfo = redirect(options.params, options.query)
+    combinedParams = {}
+    Object.assign(combinedParams, handler.params or Utils.pick(options.params, handler.names)) for handler in handlers
+    newOptions =
+      name: if (parentName = handlers[handlers.length-2]?.handler.name) then "#{parentName}.#{newInfo[0]}" else newInfo[0]
+      params: @_cleanParams(Object.assign(newInfo[1] or {}, combinedParams))
+      query: @_cleanQuery(Object.assign(newInfo[2] or {}, options.query or {}, handlers.queryParams))
 
-    @_resolveRoute(new_options)
+    @_resolveRoute(newOptions)
 
   # finds nearest relative path starting from current level through each parent
-  _resolveNameFallback: (relative_name, parent_name) ->
-    name = if parent_name then "#{parent_name}.#{relative_name}" else relative_name
-    name = name_array[...-1].concat([relative_name]).join('.') until @recognizer.hasRoute(name) or not (name_array = name.split('.')[...-1]).length
+  _resolveNameFallback: (relativeName, parentName) ->
+    name = if parentName then "#{parentName}.#{relativeName}" else relativeName
+    name = name_array[...-1].concat([relativeName]).join('.') until @recognizer.hasRoute(name) or not (name_array = name.split('.')[...-1]).length
     return name
 
   # resolve not found url routes
@@ -151,23 +151,23 @@ module.exports = class Router
     name = @_resolveNameFallback('not_found', name)
 
     # handlers found by name are different format than url, combine to preserve url information
-    name_handlers = @recognizer.handlersFor(name)
-    new_handlers = {queryParams: handlers.queryParams}
+    nameHandlers = @recognizer.handlersFor(name)
+    newHandlers = {queryParams: handlers.queryParams}
     for k, v of handlers
-      if name_handlers[k].handler.name isnt v.handler.name
-        new_handlers[k] = {handler: name_handlers[k].handler, params: {}, isDynamic: false}
-        new_handlers.length = +k + 1
+      if nameHandlers[k].handler.name isnt v.handler.name
+        newHandlers[k] = {handler: nameHandlers[k].handler, params: {}, isDynamic: false}
+        newHandlers.length = +k + 1
         break
-      else new_handlers[k] = v
+      else newHandlers[k] = v
 
-    return new_handlers
+    return newHandlers
 
   # applies current state parameter data as defaults to new proposed transition
   _defaultParams: (name, params) ->
     state = @state
-    param_names = []
-    param_names = param_names.concat(result.names) for result in @recognizer.handlersFor(name)
-    params = Object.assign(Utils.pick(@store.state.params, param_names), params)
+    paramNames = []
+    paramNames = paramNames.concat(result.names) for result in @recognizer.handlersFor(name)
+    params = Object.assign(Utils.pick(@store.state.params, paramNames), params)
     @_cleanParams(params)
     return params
 

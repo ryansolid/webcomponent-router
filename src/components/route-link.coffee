@@ -53,16 +53,16 @@ module.exports = class RouteLink extends HTMLAnchorElement
 
     @onStateChange = =>
       return unless @name or @query
-      route_args = [@name, @params or {}, @query or {}]
-      route_args = [@query or {}] unless @name
+      routeArgs = [@name, @params or {}, @query or {}]
+      routeArgs = [@query or {}] unless @name
 
-      @href = @router?.toURL.apply(@router, route_args)
+      @href = @router?.toURL.apply(@router, routeArgs)
       @onclick = (e) =>
-        @router?.transitionTo.apply(@router, route_args)
+        @router?.transitionTo.apply(@router, routeArgs)
         e.preventDefault()
         e.stopPropagation() unless @clickbubble
 
-      if @router.isActive.apply(@router, route_args)
+      if @router.isActive.apply(@router, routeArgs)
         @classList.add('active')
         sendEvent(@, 'active', true)
       else
@@ -78,8 +78,8 @@ module.exports = class RouteLink extends HTMLAnchorElement
 
   disconnectedCallback: -> @router?.off 'state', @onStateChange
 
-  attributeChangedCallback: (name, old_val, new_val) ->
-    @[name] = parse(new_val)
+  attributeChangedCallback: (name, oldVal, newVal) ->
+    @[name] = parse(newVal)
     @onStateChange?()
 
 customElements.define('route-link', RouteLink, {extends: 'a'})

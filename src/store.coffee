@@ -6,16 +6,16 @@ module.exports = class Store extends EventEmitter
   constructor: (@debug) ->
     super()
     @state = {levels: [], params: {}, query: {}}
-    @transition_handlers = []
+    @transitionHandlers = []
 
    # register callbacks
   on: (name, handlerFn) =>
     return super(name, handlerFn) unless name is 'transition'
-    @transition_handlers.push(handlerFn)
+    @transitionHandlers.push(handlerFn)
 
   off: (name, handlerFn) =>
     return super(name, handlerFn) unless name is 'transition'
-    @transition_handlers.splice(index, 1) if (index = @transition_handlers.indexOf(handlerFn))?
+    @transitionHandlers.splice(index, 1) if (index = @transitionHandlers.indexOf(handlerFn))?
 
   updateState: (state) ->
     change_index = -1
@@ -29,7 +29,7 @@ module.exports = class Store extends EventEmitter
       changed_keys.push(k)
 
     return true unless (change_index > -1 or changed_keys.length)
-    return false for handlerFn in @transition_handlers when not handlerFn(state)
+    return false for handlerFn in @transitionHandlers when not handlerFn(state)
 
     if change_index > -1
       if @state.levels.length
