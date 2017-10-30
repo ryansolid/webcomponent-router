@@ -44,9 +44,9 @@ module.exports = class RouterDSL
 
 
   addRoute: (name, options, callback) =>
-    handler_options = Object.assign({}, options)
-    delete handler_options.path
-    handler = Object.assign({name: @fullName(name)}, handler_options)
+    handlerOptions = Object.assign({}, options)
+    delete handlerOptions.path
+    handler = Object.assign({name: @fullName(name)}, handlerOptions)
     @explicitIndex = true if options.path in ['/', ''] or name[-5..] is 'index'
     @matches.push([options.path or "/#{name.replace(/_/g, '-')}", handler, callback])
 
