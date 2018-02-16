@@ -84,43 +84,43 @@ describe 'Router Tests', ->
       done()
 
     it 'should exit index group and group , and enter user, and specific set', (done) ->
-      success = router.transitionTo 'user.set', {userId: 1234, setId: 2}
+      success = router.transitionTo('user.set', {userId: 1234, setId: 2})
       assert.ok(success)
       assert.equal(router.location.path, '/users/1234/sets/2')
       done()
 
     it 'should update set', (done) ->
-      success = router.transitionTo 'user.set', {userId: 1234, setId: 5}
+      success = router.transitionTo('user.set', {userId: 1234, setId: 5})
       assert.ok(success)
       assert.equal(router.location.path, '/users/1234/sets/5')
       done()
 
     it 'should navigate to different top level page', (done) ->
-      success = router.transitionTo 'uploader', (err) ->
+      success = router.transitionTo('uploader')
       assert.ok(success)
       assert.equal(router.location.path, '/uploader')
       done()
 
     it 'should navigate to different sub page', (done) ->
-      success = router.transitionTo 'uploader.group', {groupId: 4}, (err) ->
+      success = router.transitionTo('uploader.group', {groupId: 4})
       assert.ok(success)
       assert.equal(router.location.path, '/uploader/groups/4/albums')
       done()
 
     it 'should detect query change', (done) ->
-      success = router.transitionTo 'uploader.group.albums', {groupId: 4}, {test: 1}, (err) ->
+      success = router.transitionTo('uploader.group.albums', {groupId: 4}, {test: 1})
       assert.ok(success)
       assert.equal(router.location.path, '/uploader/groups/4/albums?test=1')
       done()
 
     it 'should only update query', (done) ->
-      success = router.transitionTo {test: 2}, (err) ->
+      success = router.transitionTo({test: 2})
       assert.ok(success)
       assert.equal(router.location.path, '/uploader/groups/4/albums?test=2')
       done()
 
     it 'should detect query change on remove', (done) ->
-      success = router.transitionTo 'uploader.group.albums', (err) ->
+      success = router.transitionTo('uploader.group.albums')
       assert.ok(success)
       assert.equal(router.location.path, '/uploader/groups/4/albums')
       done()
