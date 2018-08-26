@@ -1,0 +1,5 @@
+{
+  "name": "webcomponent-router/components",
+  "module": "../dist/components.js",
+  "sideEffects": true
+}

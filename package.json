@@ -1,20 +1,19 @@
 {
   "name": "webcomponent-router",
   "description": "A library for nested routing using webcomponents",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Ryan Carniato",
-  "main": "lib/index.js",
+  "main": "lib/webcomponent-router.js",
+  "module": "dist/webcomponent-router.js",
   "scripts": {
-    "prepublish": "coffee --compile --bare --no-header --output lib/ src/",
-    "test": "npm run prepublish && mocha test/**/*.tests.coffee"
+    "build": "rollup -c",
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && mocha test/**/*.tests.js"
   },
   "devDependencies": {
     "mocha": "*",
-    "coffeescript": "1.x"
-  },
-  "dependencies": {
-    "eventemitter3": "2.x",
-    "route-recognizer": "0.2.x",
-    "document-register-element": "1.x"
+    "rollup": "^0.64.1",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "route-recognizer": "0.3.4"
   }
 }
