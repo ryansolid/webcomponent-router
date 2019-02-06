@@ -1,10 +1,14 @@
 {
   "name": "webcomponent-router",
   "description": "A library for nested routing using webcomponents",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "Ryan Carniato",
   "main": "lib/webcomponent-router.js",
   "module": "dist/webcomponent-router.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ryansolid/webcomponent-router"
+  },
   "scripts": {
     "build": "rollup -c",
     "prepublishOnly": "npm run build",

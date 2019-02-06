@@ -51,8 +51,8 @@ export default function getScopedRouter(router, level) {
     level,
     store: router.store
   };
-  SCOPED_METHODS.forEach((method) => {
-    return scopedRouter[method] = (name) => {
+  SCOPED_METHODS.forEach(method => {
+    return scopedRouter[method] = function(name) {
       if (isObject(name)) {
         return router[method].apply(router, arguments);
       }
@@ -79,8 +79,8 @@ export default function getScopedRouter(router, level) {
     }
     return routes;
   };
-  FORWARDED_METHODS.forEach((method) =>
-    scopedRouter[method] = () => router[method](...arguments)
+  FORWARDED_METHODS.forEach(method =>
+    scopedRouter[method] = function() { return router[method](...arguments); }
   );
   return scopedRouter;
 };
