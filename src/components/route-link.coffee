@@ -79,6 +79,7 @@ module.exports = class RouteLink extends HTMLAnchorElement
   disconnectedCallback: -> @router?.off 'state', @onStateChange
 
   attributeChangedCallback: (name, oldVal, newVal) ->
+    return if oldVal is newVal
     @[name] = parse(newVal)
     @onStateChange?()
 

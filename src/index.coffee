@@ -186,6 +186,5 @@ module.exports = class Router
 
 # only include in browser
 if typeof window isnt 'undefined'
-  require 'document-register-element'
   require './components/route-outlet'
   require './components/route-link'
