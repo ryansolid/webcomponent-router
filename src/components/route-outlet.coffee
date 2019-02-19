@@ -14,6 +14,7 @@ module.exports = class RouteOutlet extends HTMLElement
     prevParams = []
 
     @onParamsChange = (params) =>
+      return unless element
       for k, v of params
         v = JSON.stringify(v) unless Utils.isString(v)
         element.setAttribute(toAttributeName(k), v)
@@ -25,6 +26,7 @@ module.exports = class RouteOutlet extends HTMLElement
       prevParams = params
 
     @onQueryChange = (query) =>
+      return unless element
       element.setAttribute('query', JSON.stringify(query)) if query
       element.removeAttribute('query') unless Object.keys(query).length
 
