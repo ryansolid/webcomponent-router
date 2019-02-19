@@ -64,6 +64,7 @@ module.exports = class RouteOutlet extends HTMLElement
     @onEnter({"#{targetLevel}": @router.store.state.levels[targetLevel]})
 
   disconnectedCallback: ->
+    @removeChild(@firstChild) if @firstChild
     @router.off 'exit', @onExit
     @router.off 'enter', @onEnter
     @router.off 'params', @onParamsChange
