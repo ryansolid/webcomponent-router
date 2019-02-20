@@ -35,9 +35,8 @@ module.exports = class RouteOutlet extends HTMLElement
       return if element?.nodeName.toLowerCase() is tag
       element = document.createElement(tag)
       element.__router = {id: @router.id, level: targetLevel}
-      attributes = {}
-      attributes[attr.name] = attr.value for attr in @attributes
-      if Object.keys(Object.assign(attributes, changes[targetLevel].attributes)).length
+      attributes = changes[targetLevel].attributes
+      if Object.keys(attributes).length
         for k, v of attributes
           v = JSON.stringify(v) unless Utils.isString(v)
           element.setAttribute(k, v)
