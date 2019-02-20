@@ -58,9 +58,9 @@ module.exports = class RouteLink extends HTMLAnchorElement
 
       @href = @router?.toURL.apply(@router, routeArgs)
       @onclick = (e) =>
-        @router?.transitionTo.apply(@router, routeArgs)
         e.preventDefault()
         e.stopPropagation() unless @clickbubble
+        @router?.transitionTo.apply(@router, routeArgs)
 
       if @router.isActive.apply(@router, routeArgs)
         @classList.add('active')
