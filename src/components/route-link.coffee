@@ -52,6 +52,8 @@ module.exports = class RouteLink extends HTMLAnchorElement
     @router = Router.for(@)
 
     @onStateChange = =>
+      # timing issues sometimes with polyfills of disconnectedCallback
+      return unless connectedToDOM(@)
       return unless @name or @query
       routeArgs = [@name, @params or {}, @query or {}]
       routeArgs = [@query or {}] unless @name

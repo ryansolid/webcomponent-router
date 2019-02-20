@@ -1,10 +1,12 @@
 {
   "name": "webcomponent-router",
   "description": "A library for nested routing using webcomponents",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "author": "Ryan Carniato",
   "main": "lib/index.js",
-  "publishConfig": { "tag": "0.2.x" },
+  "publishConfig": {
+    "tag": "0.2.x"
+  },
   "scripts": {
     "prepublish": "coffee --compile --bare --no-header --output lib/ src/",
     "test": "npm run prepublish && mocha test/**/*.tests.coffee"
