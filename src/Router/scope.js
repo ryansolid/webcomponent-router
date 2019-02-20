@@ -62,15 +62,16 @@ export default function getScopedRouter(router, level) {
     };
   });
   scopedRouter.childRoutes = function() {
-    var handler, k, name, ref, v;
+    var handler, k, name, ref, v, scopedName;
     const routes = [];
     ref = router.recognizer.names;
+    scopedName = router.store.state.levels[level].name
     for (k in ref) {
       v = ref[k];
-      if (!(k.indexOf(scopedRouter.name + '.') !== -1)) {
+      if (!(k.indexOf(scopedName + '.') !== -1)) {
         continue;
       }
-      name = k.replace(scopedRouter.name + '.', '');
+      name = k.replace(scopedName + '.', '');
       if (name.indexOf('.') === -1) {
         handler = Object.assign({}, v.handlers[level + 1].handler);
         handler.name = name;

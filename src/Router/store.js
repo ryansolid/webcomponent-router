@@ -19,7 +19,7 @@ export default class Store {
 
   once(name, handlerFn) {
     this.handlers[name] || (this.handlers[name] = []);
-    const selfRemoving = (p) => { handlerFn(p); this.off(selfRemoving); }
+    const selfRemoving = (p) => { handlerFn(p); this.off(name, selfRemoving); }
     this.handlers[name].push(selfRemoving);
     return this;
   }

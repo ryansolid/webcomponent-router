@@ -1,16 +1,15 @@
 const assert = require('assert');
 const Router = require('../lib/webcomponent-router.js').default;
 
-describe('Router Tests', function() {
-  var router;
-  router = null;
-  describe('Create Router', function() {
-    it('should create and configure router properly', function(done) {
-      router = new Router({}, { location: 'none', debug: true });
+describe('Router Tests', () => {
+  let router = null;
+  const div = document.createElement('div');
+  describe('Create Router', () => {
+    it('should create and configure router properly', () => {
+      router = new Router(div, { location: 'none', debug: true });
       assert.ok(router.location.type === 'none');
-      return done();
     });
-    it('should add routes properly', function(done) {
+    it('should add routes properly', () => {
       router.map(r => {
         r.index(() => ['user', { userId: 123 }]);
         r.notFound(() => ['index']);
@@ -52,132 +51,190 @@ describe('Router Tests', function() {
       assert.ok(router.hasRoute('uploader'));
       assert.ok(router.hasRoute('uploader.index'));
       assert.ok(router.hasRoute('uploader.group.index'));
-      return done();
     });
-    it('should parse url properly', function(done) {
+    it('should parse url properly', () => {
       var handlers;
       handlers = router.recognizer.recognize('/groups/12?sort=date');
       assert.ok(handlers.length === 2);
       assert.deepEqual(handlers.queryParams, { sort: 'date' });
-      return done();
     });
-    it('should generate url properly with defaults', function(done) {
+    it('should generate url properly with defaults', () => {
       assert.ok(router.toURL('group', { groupId: 12 }) === '/groups/12/albums');
-      return done();
     });
-    it('should generate url properly with query', function(done) {
+    it('should generate url properly with query', () => {
       assert.ok(router.toURL('group.album', { groupId: 12, albumId: 10 }, { page: 2 }) === '/groups/12/albums/10?page=2');
-      return done();
+    });
+    it('should have the correct child routes', () => {
+      const ROUTES = ['index', 'not_found', 'user', 'group', 'uploader'];
+      router.childRoutes().forEach((c, i) => assert.equal(c.name, ROUTES[i]));
     });
   });
-  describe('Handle transitions by name', function() {
-    it('should navigate to specific album in group', function(done) {
+  describe('Handle transitions by name', () => {
+    it('should navigate to specific album in group', () => {
       var success;
       success = router.transitionTo('group.album', { groupId: 12, albumId: 10 });
       assert.ok(success);
       assert.equal(router.location.path, '/groups/12/albums/10');
-      return done();
     });
-    it('should navigate to index pane for same group', function(done) {
+    it('should navigate to index pane for same group', () => {
       var success;
       success = router.transitionTo('group');
       assert.ok(success);
       assert.equal(router.location.path, '/groups/12/albums');
-      return done();
     });
-    it('should remain unchanged when explicitly navigating to same pane (albums)', function(done) {
+    it('should remain unchanged when explicitly navigating to same pane (albums)', () => {
       var success;
       success = router.transitionTo('group.albums', { groupId: 12 });
       assert.ok(success);
       assert.equal(router.location.path, '/groups/12/albums');
-      return done();
     });
-    it('should exit index group and group , and enter user, and specific set', function(done) {
+    it('should exit index group and group , and enter user, and specific set', () => {
       var success;
       success = router.transitionTo('user.set', { userId: 1234, setId: 2 });
       assert.ok(success);
       assert.equal(router.location.path, '/users/1234/sets/2');
-      return done();
     });
-    it('should update set', function(done) {
+    it('should update set', () => {
       var success;
       success = router.transitionTo('user.set', { userId: 1234, setId: 5 });
       assert.ok(success);
       assert.equal(router.location.path, '/users/1234/sets/5');
-      return done();
     });
-    it('should navigate to different top level page', function(done) {
+    it('should navigate to different top level page', () => {
       var success;
       success = router.transitionTo('uploader');
       assert.ok(success);
       assert.equal(router.location.path, '/uploader');
-      return done();
     });
-    it('should navigate to different sub page', function(done) {
+    it('should navigate to different sub page', () => {
       var success;
       success = router.transitionTo('uploader.group', { groupId: 4 });
       assert.ok(success);
       assert.equal(router.location.path, '/uploader/groups/4/albums');
-      return done();
     });
-    it('should detect query change', function(done) {
+    it('should detect query change', () => {
       var success;
       success = router.transitionTo('uploader.group.albums', { groupId: 4 }, { test: 1 });
       assert.ok(success);
       assert.equal(router.location.path, '/uploader/groups/4/albums?test=1');
-      return done();
     });
-    it('should only update query', function(done) {
+    it('should only update query', () => {
       var success;
       success = router.transitionTo({ test: 2 });
       assert.ok(success);
       assert.equal(router.location.path, '/uploader/groups/4/albums?test=2');
-      return done();
     });
-    return it('should detect query change on remove', function(done) {
+    it('should verify active query', () => {
+      assert.ok(router.isActive({ test: 2 }));
+    });
+    it('resolve url for query', () => {
+      assert.equal(router.toURL({ test: 2 }), '/uploader/groups/4/albums?test=2');
+    });
+    it('should detect query change on remove', () => {
       var success;
       success = router.transitionTo('uploader.group.albums');
       assert.ok(success);
       assert.equal(router.location.path, '/uploader/groups/4/albums');
-      return done();
+    });
+    it('should verify when active route', () => {
+      assert.ok(router.isActive('uploader.group.albums', {groupId: 4}));
     });
   });
-  describe('Going Back', function() {
-    it('should go back', function(done) {
+  describe('Going Back', () => {
+    it('should go back', () => {
       var success;
       success = router.goBack();
       assert.ok(success);
       assert.ok(router.location.path === '/uploader/groups/4/albums?test=2');
-      return done();
     });
-    return it('should go back again', function(done) {
+    it('should go back again', () => {
       var success;
       success = router.goBack();
       assert.ok(success);
       assert.ok(router.location.path === '/uploader/groups/4/albums?test=1');
-      return done();
     });
   });
-  return describe('Handle url change', function() {
-    it('should navigate on detected url change to root', function(done) {
+  describe('Handle url change', () => {
+    it('should navigate on detected url change to root', () => {
       router.location.trigger('/');
       assert.ok(router.location.path === '/users/123/sets');
-      return done();
     });
-    it('should navigate on detected url change', function(done) {
+    it('should navigate on detected url change', () => {
       router.location.trigger('/groups/12e1/sets/1');
       assert.ok(router.location.path === '/groups/12e1/sets/1');
-      return done();
     });
-    it('should fallback to group notFound handler', function(done) {
+    it('should fallback to group notFound handler', () => {
       router.location.trigger('/groups/12e1/set/1');
       assert.ok(router.location.path === '/groups/12e1/albums');
-      return done();
     });
-    return it('should fallback to application notFound handler', function(done) {
+    it('should fallback to application notFound handler', () => {
       router.location.trigger('/group/12e1/sets/1');
       assert.ok(router.location.path === '/users/123/sets');
-      return done();
     });
   });
+  describe('Nested routing', () => {
+    let nestedRouter;
+    it('should return the router for the root element', () => {
+      const r = Router.for(div);
+      assert.equal(r, router);
+    });
+    it('should return the nested router for the element', () => {
+      // simulate nested routing
+      const outlet = document.createElement('div'),
+        child = document.createElement('div');
+
+      outlet.appendChild(child);
+      child.__router = {
+        id: router.id,
+        level: 0
+      }
+      nestedRouter = Router.for(child);
+      assert.ok(nestedRouter);
+    });
+    it('should get child routes', () => {
+      router.transitionTo('/groups/23/albums');
+      const ROUTES = ['index', 'not_found', 'albums', 'album', 'sets', 'set'];
+      nestedRouter.childRoutes().forEach((c, i) => assert.equal(c.name, ROUTES[i]));
+    });
+    it('should forward router methods', () => {
+      assert.ok(nestedRouter.isActive('.albums'));
+      assert.ok(nestedRouter.isActive('*albums'));
+      assert.ok(nestedRouter.isActive('^group'));
+    });
+  });
+  describe('Router events', () => {
+    let eventCount,
+      eventHandler = () => { eventCount++; };
+    it('should register an event handler', done => {
+      eventCount = 0;
+      router.on('state', eventHandler);
+      assert.equal(eventCount, 0);
+      router.transitionTo('index');
+      setTimeout(() => {
+        assert.equal(eventCount, 1);
+        done();
+      }, 0);
+    });
+    it('should unregister an event handler', done => {
+      eventCount = 0;
+      router.off('state', eventHandler)
+      assert.equal(eventCount, 0);
+      router.transitionTo('group');
+      setTimeout(() => {
+        assert.equal(eventCount, 0);
+        done();
+      }, 0);
+    });
+    it('should register a once event handler', done => {
+      eventCount = 0;
+      router.once('state', eventHandler)
+      assert.equal(eventCount, 0);
+      router.transitionTo('index');
+      router.transitionTo('group');
+      setTimeout(() => {
+        assert.equal(eventCount, 1);
+        done();
+      }, 0);
+    })
+  })
 });
