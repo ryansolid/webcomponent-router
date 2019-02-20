@@ -1,5 +1,5 @@
 const assert = require('assert');
-const Router = require('../../lib/webcomponent-router.js').default;
+const Router = require('../lib/webcomponent-router.js').default;
 
 describe('Router Tests', function() {
   var router;

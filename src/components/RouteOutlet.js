@@ -15,6 +15,7 @@ function difference(a, b) { return a.filter((t) => b.indexOf(t) < 0); }
 
 class RouteOutlet extends HTMLElement {
   connectedCallback() {
+    if (this.router) return;
     var element, level, prevParams, targetLevel;
     element = null;
     prevParams = [];
@@ -57,17 +58,11 @@ class RouteOutlet extends HTMLElement {
         id: this.router.id,
         level: targetLevel
       };
-      let attributes = {};
-      for (let i = 0, len = this.attributes.length; i < len; i++) {
-        const attr = this.attributes[i];
-        attributes[attr.name] = attr.value;
-      }
-      if (Object.keys(Object.assign(attributes, changes[targetLevel].attributes)).length) {
-        for (const k in attributes) {
-          let v = attributes[k];
-          if (!isString(v)) v = JSON.stringify(v);
-          element.setAttribute(k, v);
-        }
+      let attributes = changes[targetLevel].attributes || {};
+      for (const k in attributes) {
+        let v = attributes[k];
+        if (!isString(v)) v = JSON.stringify(v);
+        element.setAttribute(k, v);
       }
       this.onParamsChange(this.router.store.state.params);
       this.onQueryChange(this.router.store.state.query);
@@ -112,6 +107,8 @@ class RouteOutlet extends HTMLElement {
     this.router.off('enter', this.onEnter);
     this.router.off('params', this.onParamsChange);
     this.router.off('query', this.onQueryChange);
+    if (this.firstChild) this.removeChild(this.firstChild);
+    delete this.router;
   }
 
 };

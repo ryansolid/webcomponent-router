@@ -69,10 +69,10 @@ class RouteLink extends HTMLAnchorElement {
     if (!this.name) routeArgs = [this.query || {}];
 
     this.href = this.router.toURL(...routeArgs);
-    this.onclick = (e) => {
-      if (this.router != null) this.router.transitionTo(...routeArgs);
+    this.onclick = e => {
       e.preventDefault();
       if (!this.clickbubble) e.stopPropagation();
+      if (this.router != null) this.router.transitionTo(...routeArgs);
     };
     if (this.router.isActive(...routeArgs)) {
       this.classList.add('active');
