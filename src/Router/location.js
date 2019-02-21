@@ -56,13 +56,13 @@ class History {
     this.root = root;
     this.type = 'history';
     this.path = this.root;
-    this.depth = ((ref = history.state) != null ? ref.depth : void 0) || 0;
+    this.depth = ((ref = window.history.state) != null ? ref.depth : void 0) || 0;
   }
 
   set(path) {
     this.path = path;
     if (this.path === this.get()) return;
-    history.pushState({
+    window.history.pushState({
       depth: ++this.depth
     }, null, this.formatURL(this.path));
   }
@@ -72,13 +72,13 @@ class History {
     if (this.path === this.get() && (this.depth != null)) return;
     //initialization
     this.depth || (this.depth = 0);
-    history.replaceState({
+    window.history.replaceState({
       depth: this.depth
     }, null, this.formatURL(this.path));
   }
 
   get() {
-    let fragment = decodeURI(location.pathname + location.search).replace(TRIM_SLASHES, '');
+    let fragment = decodeURI(window.location.pathname + window.location.search).replace(TRIM_SLASHES, '');
     fragment = fragment.replace(this.root.replace(TRIM_SLASHES, ''), '');
     return '/' + fragment.replace(TRIM_SLASHES, '');
   }
@@ -94,7 +94,7 @@ class History {
     }, false);
   }
 
-  back(depth) { return history.go(-depth); }
+  back(depth) { return window.history.go(-depth); }
 
   formatURL(url) { return this.root + url.replace(TRIM_SLASHES, ''); }
 

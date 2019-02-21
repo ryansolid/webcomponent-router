@@ -64,6 +64,8 @@ class RouteLink extends HTMLAnchorElement {
   }
 
   onStateChange() {
+    // polyfill protection
+    if (!connectedToDOM(this)) return;
     if (!(this.name || this.query) || !this.router) return;
     let routeArgs = [this.name, this.params || {}, this.query || {}];
     if (!this.name) routeArgs = [this.query || {}];
@@ -85,8 +87,7 @@ class RouteLink extends HTMLAnchorElement {
   };
 
   disconnectedCallback() {
-    var ref;
-    (ref = this.router) != null ? ref.off('state', this.onStateChange) : void 0;
+    this.router && this.router.off('state', this.onStateChange);
   }
 
   attributeChangedCallback(name, oldVal, newVal) {

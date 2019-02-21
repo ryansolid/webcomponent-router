@@ -235,6 +235,48 @@ describe('Router Tests', () => {
         assert.equal(eventCount, 1);
         done();
       }, 0);
-    })
+    });
+  });
+  describe('Different location APIs', () => {
+    it('should create and configure hash router properly', done => {
+      const hashRouter = new Router(div, { location: 'hash' });
+      assert.ok(hashRouter.location.type === 'hash');
+      hashRouter.map(r => {
+        r.index(() => ['user', { userId: 123 }]);
+        r.notFound(() => ['index']);
+        r.route('user', { path: '/users/:userId', tag: 'pane-user' }, r => {
+          r.index(() => ['sets']);
+          r.route('sets', { path: '/sets', tag: 'pane-sets' });
+          r.route('set', { path: '/sets/:setId', tag: 'pane-set' });
+        });
+      });
+      hashRouter.start();
+      window.location.hash = 'users/123/sets/23';
+      setTimeout(() => {
+        assert.equal(hashRouter.location.path, '/users/123/sets/23');
+        done();
+      }, 0);
+    });
+    it('should create and configure history router properly', () => {
+      const historyRouter = new Router(div, { location: 'history' });
+      assert.ok(historyRouter.location.type === 'history');
+      historyRouter.map(r => {
+        r.index(() => ['user', { userId: 123 }]);
+        r.notFound(() => ['index']);
+        r.route('user', { path: '/users/:userId', tag: 'pane-user' }, r => {
+          r.index(() => ['sets']);
+          r.route('sets', { path: '/sets', tag: 'pane-sets' });
+          r.route('set', { path: '/sets/:setId', tag: 'pane-set' });
+        });
+      });
+      historyRouter.start();
+      historyRouter.transitionTo('user.set', {userId: 123, setId: 23});
+      assert.equal(historyRouter.location.path, '/users/123/sets/23');
+      // Go back doesn't work so faking it
+      historyRouter.goBack();
+      window.history.pushState({}, '', 'http://localhost/users/123/sets');
+      window.dispatchEvent(new CustomEvent('popstate', { depth: 1 }));
+      assert.equal(historyRouter.location.path, '/users/123/sets');
+    });
   })
 });

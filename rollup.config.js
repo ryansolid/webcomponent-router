@@ -10,6 +10,7 @@ export default [{
     file: 'dist/webcomponent-router.js',
     format: 'es'
   }],
+  external: ['route-recognizer'],
   plugins: [nodeResolve({ extensions: ['.js'] })]
 }, {
   input: 'src/components/index.js',
