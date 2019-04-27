@@ -13,7 +13,7 @@ describe('Router Tests', () => {
       router.map(r => {
         r.index(() => ['user', { userId: 123 }]);
         r.notFound(() => ['index']);
-        r.route('user', { path: '/users/:userId', tag: 'pane-user' }, r => {
+        r.route('user', { path: '/users/:userId', tag: 'pane-user', attributes: {self: true} }, r => {
           r.index(() => ['sets']);
           r.route('sets', { path: '/sets', tag: 'pane-sets' });
           r.route('set', { path: '/sets/:setId', tag: 'pane-set' });
@@ -212,6 +212,17 @@ describe('Router Tests', () => {
       router.transitionTo('index');
       setTimeout(() => {
         assert.equal(eventCount, 1);
+        done();
+      }, 0);
+    });
+    it('should prevent a transition', done => {
+      eventCount = 0;
+      router.on('transition', () => false );
+      assert.equal(eventCount, 0);
+      router.transitionTo('group');
+      router.off('transition');
+      setTimeout(() => {
+        assert.equal(eventCount, 0);
         done();
       }, 0);
     });

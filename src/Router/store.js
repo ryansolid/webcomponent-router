@@ -27,7 +27,8 @@ export default class Store {
   off(name, handlerFn) {
     var index;
     if (!(name in this.handlers)) return;
-    if ((index = this.handlers[name].indexOf(handlerFn)) > -1) this.handlers[name].splice(index, 1);
+    if (!handlerFn) this.handlers[name] = [];
+    else if ((index = this.handlers[name].indexOf(handlerFn)) > -1) this.handlers[name].splice(index, 1);
     return this;
   }
 
