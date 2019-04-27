@@ -13,7 +13,7 @@ export default [{
   external: ['route-recognizer'],
   plugins: [nodeResolve({ extensions: ['.js'] })]
 }, {
-  input: 'src/components/index.js',
+  input: 'src/components/RouteLink.js',
   output: {
     file: 'dist/components.js',
     format: 'es'

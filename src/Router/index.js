@@ -3,6 +3,7 @@ import Location from './location';
 import RouterDSL from './dsl';
 import Store from './store';
 import scopeRouter from './scope'
+import createRouteHandler from './routeHandler';
 import { isObject, isEqual, pick } from './utils';
 
 let ROUTER_ID = 0;
@@ -28,7 +29,7 @@ export default class Router {
     element.__router = { id: this.id };
     Router.instances[this.id] = this;
     this.recognizer = new Recognizer();
-    if (options.location === 'history' && !!(typeof history !== "undefined" && history !== null ? history.pushState : void 0)) {
+    if ((!options.location || options.location === 'history') && !!(typeof history !== "undefined" && history !== null ? history.pushState : void 0)) {
       this.location = Location.create('history', options.root);
     } else if (options.location === 'none') {
       this.location = Location.create('none');
@@ -36,6 +37,7 @@ export default class Router {
       this.location = Location.create('hash');
     }
     this.store = new Store(this.debug);
+    createRouteHandler(this, element);
   }
 
   start() {

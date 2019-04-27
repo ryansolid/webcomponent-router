@@ -1,7 +1,7 @@
 {
   "name": "webcomponent-router",
   "description": "A library for nested routing using webcomponents",
-  "version": "0.3.3",
+  "version": "0.4.0-beta.0",
   "author": "Ryan Carniato",
   "main": "lib/webcomponent-router.js",
   "module": "dist/webcomponent-router.js",
@@ -12,15 +12,15 @@
   "scripts": {
     "build": "rollup -c",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && jest"
+    "test": "npm run build && jest --coverage"
   },
   "dependencies": {
     "route-recognizer": "0.3.4"
   },
   "devDependencies": {
-    "coveralls": "^3.0.2",
-    "jest": "24.1.0",
-    "rollup": "1.2.2",
-    "rollup-plugin-node-resolve": "^4.0.0"
+    "coveralls": "^3.0.3",
+    "jest": "24.7.1",
+    "rollup": "1.10.1",
+    "rollup-plugin-node-resolve": "^4.2.3"
   }
 }

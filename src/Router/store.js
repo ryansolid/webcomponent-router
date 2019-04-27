@@ -31,10 +31,10 @@ export default class Store {
     return this;
   }
 
-  async emit(name, payload) {
+  emit(name, ...payload) {
     if (!(name in this.handlers)) return;
     for (let i = 0, len = this.handlers[name].length; i < len; i++) {
-      await this.handlers[name][i](payload);
+      this.handlers[name][i](...payload);
     }
   }
 
@@ -58,56 +58,12 @@ export default class Store {
       handlerFn = this.handlers['transition'][m];
       if (!handlerFn(state)) return false;
     }
-    const oldState = this.state
     this.state = state;
-    this.notify(oldState, changeIndex, changedKeys)
-    return true;
-  }
-
-  async notify(oldState, changeIndex, changedKeys) {
-    var enterPayload, exitPayload;
-    if (changeIndex > -1) {
-      if (oldState.levels.length) {
-        exitPayload = Object.assign({}, ...((function() {
-          var i, n, ref4, ref5, results;
-          results = [];
-          for (i = n = ref4 = changeIndex, ref5 = oldState.levels.length; (ref4 <= ref5 ? n < ref5 : n > ref5); i = ref4 <= ref5 ? ++n : --n) {
-            results.push({
-              [`${i}`]: oldState.levels[i]
-            });
-          }
-          return results;
-        }).call(this)));
-        if (this.debug) {
-          console.log('Exit:', exitPayload);
-        }
-        await this.emit('exit', exitPayload);
-      }
-    }
-    this.emit('state', this.state);
-    if (changeIndex > -1) {
-      enterPayload = Object.assign({}, ...((() => {
-        var i, n, ref4, ref5, results;
-        results = [];
-        for (i = n = ref4 = changeIndex, ref5 = this.state.levels.length; (ref4 <= ref5 ? n < ref5 : n > ref5); i = ref4 <= ref5 ? ++n : --n) {
-          results.push({
-            [`${i}`]: this.state.levels[i]
-          });
-        }
-        return results;
-      })()));
-      if (this.debug) {
-        console.log('Enter:', enterPayload);
-      }
-      await this.emit('enter', enterPayload);
-    }
+    this.emit('state', state, changedKeys);
     for (let i = 0, len = changedKeys.length; i < len; i++) {
       const k = changedKeys[i];
-      if (this.debug && (k === 'params' || k === 'query')) {
-        console.log(`Update ${k}:`, this.state[k]);
-      }
-      this.emit(k, this.state[k]);
+      this.emit(k, state[k]);
     }
+    return true;
   }
-
 };

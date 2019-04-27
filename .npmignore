@@ -1,3 +1,5 @@
 src/
 test/
+coverage/
+rollup.config.json
 .travis.yml
