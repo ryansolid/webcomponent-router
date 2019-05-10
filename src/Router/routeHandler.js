@@ -21,13 +21,14 @@ export default function createRouteHandler(router, element) {
   router.on('state', async (state, changedKeys) => {
     let level = 0;
     await walkAsync(element, async (node) => {
-      const tag = state.levels[level] && state.levels[level].tag,
+      const currentLevel = state.levels[level],
+        tag = currentLevel && currentLevel.tag,
         updateNode = !node.firstChild || tag !== node.firstChild.nodeName.toLowerCase();
 
       if (updateNode) {
         let onExit, onEnter, onEnterComplete;
         if (node.firstChild) {
-          if (onExit = state.levels[level].onExit) {
+          if (onExit = currentLevel.onExit) {
             await onExit(node);
           }
           if (router.debug) {
@@ -37,7 +38,7 @@ export default function createRouteHandler(router, element) {
         }
 
         if (tag) {
-          if (onEnter = state.levels[level].onEnter) {
+          if (onEnter = currentLevel.onEnter) {
             await onEnter(node);
           }
           if (router.debug) {
@@ -48,16 +49,10 @@ export default function createRouteHandler(router, element) {
             id: router.id,
             level
           };
-          let attributes = state.levels[level].attributes || {};
-          for (const k in attributes) {
-            let v = attributes[k];
-            if (!isString(v)) v = JSON.stringify(v);
-            child.setAttribute(k, v);
-          }
-          onParamsChange(child, state.params);
+          onParamsChange(child, Object.assign({}, state.params, currentLevel.attributes));
           onQueryChange(child, state.query);
           node.appendChild(child);
-          if (onEnterComplete = state.levels[level].onEnterComplete) {
+          if (onEnterComplete = currentLevel.onEnterComplete) {
             await onEnterComplete(node);
           }
         }
@@ -66,9 +61,10 @@ export default function createRouteHandler(router, element) {
       }
 
       if (node.firstChild) {
+        if (changedKeys.indexOf('params') === -1 && currentLevel.attributes) onParamsChange(node.firstChild, Object.assign({}, prevParams, currentLevel.attributes), currentLevel.attributes);
         for (let i = 0, len = changedKeys.length; i < len; i++) {
           const k = changedKeys[i];
-          if (k === 'params') onParamsChange(node.firstChild, state[k]);
+          if (k === 'params') onParamsChange(node.firstChild, Object.assign({}, state[k], currentLevel.attributes));
           if (k === 'query') onQueryChange(node.firstChild, state[k]);
         }
       }
@@ -76,10 +72,11 @@ export default function createRouteHandler(router, element) {
     });
   });
 
-  function onParamsChange(node, params) {
+  function onParamsChange(node, params, changeKeys) {
     if (router.debug) console.log(`Update Params:`, params);
 
     for (const k in params) {
+      if (changeKeys && !changeKeys[k]) continue;
       let v = params[k], name = toAttributeName(k);
       if (!isString(v)) v = JSON.stringify(v);
       node.setAttribute(name, v);
