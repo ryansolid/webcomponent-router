@@ -17,7 +17,7 @@ async function walkAsync(node, callback) {
 }
 
 export default function createRouteHandler(router, element) {
-  let prevParams = {};
+  let prevParams = {}, prevQuery = {}, prevAttributes = {};
   router.on('state', async (state, changedKeys) => {
     let level = 0;
     await walkAsync(element, async (node) => {
@@ -49,8 +49,9 @@ export default function createRouteHandler(router, element) {
             id: router.id,
             level
           };
-          onParamsChange(child, Object.assign({}, state.params, currentLevel.attributes));
-          onQueryChange(child, state.query);
+          prevParams = updateProps(child, state.params, prevParams);
+          prevQuery = updateProps(child, state.query, prevQuery);
+          if (currentLevel.attributes) prevAttributes = updateProps(child, currentLevel.attributes, prevAttributes);
           node.appendChild(child);
           if (onEnterComplete = currentLevel.onEnterComplete) {
             await onEnterComplete(node);
@@ -61,40 +62,32 @@ export default function createRouteHandler(router, element) {
       }
 
       if (node.firstChild) {
-        if (changedKeys.indexOf('params') === -1 && currentLevel.attributes) onParamsChange(node.firstChild, Object.assign({}, prevParams, currentLevel.attributes), currentLevel.attributes);
         for (let i = 0, len = changedKeys.length; i < len; i++) {
           const k = changedKeys[i];
-          if (k === 'params') onParamsChange(node.firstChild, Object.assign({}, state[k], currentLevel.attributes));
-          if (k === 'query') onQueryChange(node.firstChild, state[k]);
+          if (k === 'params') prevParams = updateProps(node.firstChild, state[k], prevParams);
+          if (k === 'query') prevQuery = updateProps(node.firstChild, state[k], prevQuery);
         }
+        if (currentLevel.attributes) prevAttributes = updateProps(node.firstChild, currentLevel.attributes, prevAttributes);
       }
       level++;
     });
   });
 
-  function onParamsChange(node, params, changeKeys) {
-    if (router.debug) console.log(`Update Params:`, params);
+  function updateProps(node, props, prevProps) {
+    if (router.debug) console.log(`Update Props:`, props);
 
-    for (const k in params) {
-      if (changeKeys && !changeKeys[k]) continue;
-      let v = params[k], name = toAttributeName(k);
+    for (const k in props) {
+      let v = props[k], name = toAttributeName(k);
       if (!isString(v)) v = JSON.stringify(v);
       node.setAttribute(name, v);
     }
-    const keys = difference(Object.keys(prevParams), Object.keys(params));
+    const keys = difference(Object.keys(prevProps), Object.keys(props));
     for (let i = 0, len = keys.length; i < len; i++) {
       const attr = toAttributeName(keys[i]);
       node.setAttribute(attr, null);
       node.removeAttribute(attr);
     }
-    prevParams = params;
-  }
-
-  function onQueryChange(node, query) {
-    if (router.debug) console.log(`Update Query:`, query);
-
-    if (query) node.setAttribute('query', JSON.stringify(query));
-    if (!Object.keys(query).length) node.removeAttribute('query');
+    return props;
   }
 }
 
