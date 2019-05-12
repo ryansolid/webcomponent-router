@@ -34,8 +34,9 @@ export default class Store {
 
   emit(name, ...payload) {
     if (!(name in this.handlers)) return;
-    for (let i = 0, len = this.handlers[name].length; i < len; i++) {
-      this.handlers[name][i](...payload);
+    const handlers = this.handlers[name].slice(0);
+    for (let i = 0, len = handlers.length; i < len; i++) {
+      handlers[i](...payload);
     }
   }
 
